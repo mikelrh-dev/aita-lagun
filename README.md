@@ -2,7 +2,9 @@
 
 <div align="center">
 
-# Aita Lagun 🤝 — Elderly Assistant for the Basque Country
+![Aita-Lagun Hero Banner](docs/hero-banner.png)
+
+# Aita Lagun — Elderly Assistant for the Basque Country
 
 **Kaggle AI Agents Capstone** · Track: Agents for Good
 
@@ -49,6 +51,8 @@ All operations are **free** — the agent uses Google AI Studio's free API tier
 and reads from public PDFs. No paid APIs, no database setup.
 
 ## Architecture
+
+![Architecture Showcase](docs/architecture-showcase.png)
 
 ```
 User Message
