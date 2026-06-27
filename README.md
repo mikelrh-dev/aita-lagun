@@ -10,7 +10,7 @@
 
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![pytest](https://img.shields.io/badge/pytest-39%20passing-brightgreen)
+![pytest](https://img.shields.io/badge/pytest-44%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)
 
 A multi-agent conversational assistant that helps elderly users manage
@@ -116,6 +116,24 @@ cp .env.example .env
 python -m agents.agent
 ```
 
+## Web Interface
+
+Aita-Lagun includes a browser-based chat interface alongside the CLI.
+
+### Running
+
+```powershell
+python -m uvicorn app.main:app --reload --port 8080
+```
+
+Then open http://localhost:8080 in your browser.
+
+### Screenshots
+
+![Chat Interface](docs/chat-mockup.png)
+![Mobile View](docs/mobile-conversation.png)
+![Feature Cards](docs/feature-cards.png)
+
 ## Detailed Setup
 
 ### Prerequisites
@@ -172,12 +190,13 @@ pytest
 pytest --cov
 
 # Run specific test file
+pytest tests/unit/test_chat_api.py -v
 pytest tests/unit/test_pdf_mcp.py -v
 ```
 
-The project follows **Strict TDD**. All 39 unit tests mock external services
-(Google Calendar API, PyMuPDF) to ensure fast, deterministic test execution,
-with **91% code coverage**.
+The project follows **Strict TDD**. All unit tests mock external services
+(Google Calendar API, PyMuPDF, ADK Runner) to ensure fast, deterministic
+test execution.
 
 ## Troubleshooting
 
@@ -198,6 +217,12 @@ aita-lagun-en/
 │   ├── agent.py             # Root agent (aita_lagun) + entry point
 │   ├── info_salud_agent.py  # Health information sub-agent
 │   └── orchestrator.py      # Medication reminder sub-agent
+├── app/                     # FastAPI backend + static frontend
+│   ├── __init__.py          # Package init
+│   ├── agent_runner.py      # ADK Runner wrapper with ask_agent()
+│   ├── main.py              # FastAPI app with /api/chat and /health
+│   └── static/
+│       └── index.html       # Chat frontend (single-page HTML+CSS+JS)
 ├── mcp_servers/             # MCP stdio servers
 │   ├── calendar_mcp.py      # Google Calendar FastMCP server
 │   └── pdf_mcp.py           # PDF search FastMCP server
@@ -206,15 +231,22 @@ aita-lagun-en/
 │   ├── unit/
 │   │   ├── test_agents.py   # Agent routing tests
 │   │   ├── test_calendar_mcp.py
+│   │   ├── test_chat_api.py # Chat API and agent runner tests
 │   │   ├── test_language.py # Language detection tests
 │   │   └── test_pdf_mcp.py
 │   └── conftest.py          # Shared test fixtures
 ├── docs/
-│   └── architecture.png     # Architecture diagram
+│   ├── architecture.png     # Architecture diagram
+│   ├── chat-mockup.png      # Desktop chat interface screenshot
+│   ├── mobile-conversation.png # Mobile chat view screenshot
+│   ├── feature-cards.png    # Feature showcase cards
+│   ├── architecture-showcase.png # Architecture showcase
+│   └── hero-banner.png      # GitHub README hero banner
 ├── .env.example             # Environment variable template
 ├── .gitignore               # Sensitive file exclusions
 ├── requirements.txt         # Python dependencies
 ├── pyproject.toml           # Project config & test settings
+├── DESIGN.md                # Design system documentation
 └── README.md                # This file
 ```
 

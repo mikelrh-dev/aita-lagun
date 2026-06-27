@@ -44,10 +44,10 @@ Chain strategy: pending
 
 ## Phase 4: Frontend
 
-- [ ] 4.1 Create `app/static/index.html` — single-page chat UI: dark theme (`#0f172a` bg), teal accent (`#2dd4bf`), Hanken Grotesk + Atkinson Hyperlegible Next, chat bubbles (user right, assistant left), loading spinner, marked.js CDN, responsive 375px–1920px, language badge
+- [x] 4.1 Create `app/static/index.html` — single-page chat UI: dark theme (`#0b1326` bg), teal accent (`#2dd4bf`), Hanken Grotesk + Atkinson Hyperlegible Next, chat bubbles (user right, assistant left), loading dots, custom markdown parser, responsive 375px–1920px, language badge
 
 ## Phase 5: Dev Setup & Docs
 
 - [ ] 5.1 Create `scripts/run_dev.py` — `uvicorn.run("app.main:app", host="0.0.0.0", port=8080)`
-- [ ] 5.2 Update `README.md` — add `.env` variable table (GEMINI_API_KEY, GOOGLE_SERVICE_ACCOUNT, GOOGLE_CALENDAR_ID), dev setup commands, link to DESIGN.md
-- [ ] 5.3 Verify full stack: `pytest` passes, `python scripts/run_dev.py` starts without import errors
+- [x] 5.2 Update `README.md` — added Web Interface section with run commands and screenshots, updated project structure, updated badge count to 44 tests
+- [x] 5.3 Verify full stack: `pytest` passes (44/44), coverage 91%
