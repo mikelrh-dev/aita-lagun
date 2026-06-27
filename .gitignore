@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+
+# Environment
+.env
+
+# Google service account keys (never commit these)
+gen-lang-client-*.json
+
+# IDE
+.vscode/
+.idea/
+
+# Caches (ADK, pytest, ruff, mypy)
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+.coverage
+htmlcov/
+
+# Trajectories (ADK Antigravity)
+trajectories/
+
+# Working notes
+Entendiendo-el-Capstone.md
+kaggle.md
+kaggglev2.md
+VIDEO_SCRIPT.md
+
+# Docker
+.docker/

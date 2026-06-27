@@ -1,0 +1,15 @@
+# Aita-Lagun .dockerignore — exclude unnecessary files from build context
+# Keeps image minimal and avoids cache invalidation from non-code changes
+
+__pycache__
+.git
+.env
+tests/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+*.md
+!README.md
+openspec/

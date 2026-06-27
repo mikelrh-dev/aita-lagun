@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aita-lagun"
+version = "0.1.0"
+description = "ADK multi-agent assistant for elderly people in Barakaldo"
+requires-python = ">=3.10"
+
+[project.scripts]
+aita-lagun = "agents.agent:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["agents", "mcp_servers"]
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+show_missing = true
