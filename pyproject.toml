@@ -17,7 +17,7 @@ asyncio_mode = "auto"
 addopts = "-v --tb=short"
 
 [tool.coverage.run]
-source = ["agents", "mcp_servers"]
+source = ["agents", "mcp_servers", "app"]
 omit = ["*/tests/*"]
 
 [tool.coverage.report]
