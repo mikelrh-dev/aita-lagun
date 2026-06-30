@@ -16,6 +16,7 @@ Security and design decisions:
 """
 
 import json
+import logging
 import os
 import re
 from datetime import date as date_mod, datetime
@@ -26,6 +27,11 @@ from googleapiclient.discovery import build
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("Calendar Server")
+
+logger = logging.getLogger(__name__)
+
+_VALID_DAY_CODES = {"MO", "TU", "WE", "TH", "FR", "SA", "SU"}
+
 
 # OAuth scope for read/write calendar access via service account.
 # This is the minimum scope needed to create events on a shared calendar.
@@ -109,11 +115,99 @@ def _parse_time(time_str: str) -> str:
     )
 
 
+def _build_rrule(recurrence: Optional[str]) -> Optional[list[str]]:
+    """Build a Google Calendar ``recurrence`` list from a simplified recurrence string.
+
+    Input → Output mapping:
+
+    ============================  ========================================
+    Input                          Output
+    ============================  ========================================
+    ``None``                       ``None``
+    ``""``                         ``None``
+    ``"daily"``                    ``["RRULE:FREQ=DAILY"]``
+    ``"weekdays"``                 ``["RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"]``
+    ``"weekly;MO"``                ``["RRULE:FREQ=WEEKLY;BYDAY=MO"]``
+    ``"weekly;MO,WE,FR"``          ``["RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR"]``
+    ``"WEEKLY;mo"`` (mixed case)   ``["RRULE:FREQ=WEEKLY;BYDAY=MO"]`` (normalized)
+    ============================  ========================================
+
+    Unsupported or invalid inputs raise ``ValueError``.
+
+    Args:
+        recurrence: A simplified recurrence string.
+
+    Returns:
+        A list containing one RFC 5545 RRULE string, or ``None``.
+
+    Raises:
+        ValueError: If the input is not a supported recurrence pattern.
+    """
+    if recurrence is None or recurrence == "":
+        return None
+
+    normalized = recurrence.strip().lower()
+
+    # --- "weekdays" shorthand → weekly with full weekday set ---
+    if normalized == "weekdays":
+        result = ["RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"]
+        logger.debug("Built RRULE for 'weekdays': %s", result[0])
+        return result
+
+    # --- "daily" → FREQ=DAILY ---
+    if normalized == "daily":
+        result = ["RRULE:FREQ=DAILY"]
+        logger.debug("Built RRULE for 'daily': %s", result[0])
+        return result
+
+    # --- "weekly;DAY1,DAY2,..." → FREQ=WEEKLY;BYDAY=... ---
+    # Bare "weekly" (without semicolon) is invalid
+    if normalized == "weekly":
+        raise ValueError(
+            f"Invalid weekly recurrence: '{recurrence}'. "
+            "Use format 'weekly;MO' or 'weekly;MO,WE,FR'."
+        )
+    if normalized.startswith("weekly;"):
+        segments = normalized.split(";", maxsplit=1)
+        if len(segments) != 2 or not segments[1].strip():
+            raise ValueError(
+                f"Invalid weekly recurrence: '{recurrence}'. "
+                "Use format 'weekly;MO' or 'weekly;MO,WE,FR'."
+            )
+
+        day_codes_raw = segments[1].strip().upper().split(",")
+        day_codes = [d.strip() for d in day_codes_raw if d.strip()]
+
+        if not day_codes:
+            raise ValueError(
+                f"Invalid weekly recurrence: '{recurrence}'. "
+                "At least one day code is required after 'weekly;'."
+            )
+
+        invalid_days = [d for d in day_codes if d not in _VALID_DAY_CODES]
+        if invalid_days:
+            raise ValueError(
+                f"Invalid day code(s) in recurrence: '{', '.join(invalid_days)}'. "
+                f"Valid codes: {', '.join(sorted(_VALID_DAY_CODES))}."
+            )
+
+        result = [f"RRULE:FREQ=WEEKLY;BYDAY={','.join(day_codes)}"]
+        logger.debug("Built RRULE for '%s': %s", recurrence, result[0])
+        return result
+
+    # --- Unsupported pattern ---
+    raise ValueError(
+        f"Unsupported recurrence pattern: '{recurrence}'. "
+        "Supported patterns: 'daily', 'weekly;DAY', 'weekdays'."
+    )
+
+
 @mcp.tool()
 def crear_evento_calendar(
     medication: str,
     time: str,
     date: Optional[str] = None,
+    recurrence: Optional[str] = None,
 ) -> dict:
     """Create a calendar event for a medication reminder.
 
@@ -121,6 +215,7 @@ def crear_evento_calendar(
         medication: Name of the medication (e.g., 'Sintrom')
         time: Time in HH:MM, 12h, or bare-hour format (e.g., '08:00', '8am', '14')
         date: Date in YYYY-MM-DD format (default: today)
+        recurrence: Optional recurrence pattern ('daily', 'weekly;MO', 'weekdays', etc.)
 
     Returns:
         dict with status and event details
@@ -147,6 +242,14 @@ def crear_evento_calendar(
             "timeZone": "Europe/Madrid",
         },
     }
+
+    # NEW: inject recurrence if present
+    try:
+        rrule = _build_rrule(recurrence)
+        if rrule is not None:
+            event_body["recurrence"] = rrule
+    except ValueError as e:
+        return {"status": "error", "error": str(e)}
 
     service = _get_calendar_service()
     event = service.events().insert(calendarId=os.environ.get("GOOGLE_CALENDAR_ID", "primary"), body=event_body).execute()

@@ -15,6 +15,7 @@ Key design decisions:
 
 import asyncio
 import os
+from datetime import date as date_mod
 
 from dotenv import load_dotenv
 from google.adk.agents import Agent
@@ -72,14 +73,29 @@ async def _detect_language(callback_context: CallbackContext) -> None:
         callback_context.state["lang"] = "en"
 
 
-root_agent = Agent(
-    name="aita_lagun",
-    model=os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"),
-    instruction=(
+def _build_instruction(callback_context: CallbackContext) -> str:
+    """Build dynamic instruction with the detected language.
+
+    Reads the language detected by ``_detect_language`` from callback state
+    and injects it into the instruction so the LLM receives an unambiguous
+    language signal rather than re-detecting from the user message.
+
+    Args:
+        callback_context: ADK callback context with session state access.
+
+    Returns:
+        Instruction string for the root agent.
+    """
+    lang = callback_context.state.get("lang", "en")
+    today = date_mod.today()
+    return (
         "You are Aita-Lagun, a helpful assistant for elderly people in Barakaldo "
         "(Basque Country, Spain). "
-        "You support English, Spanish, and Basque. "
-        "Detect the user's language and respond in the same language. "
+        f"The user's language has been detected as: {lang.upper()}. "
+        f"Today's date is {today.isoformat()}. "
+        "You MUST respond in that language throughout the entire conversation. "
+        "Do NOT switch languages unless the user explicitly changes. "
+        "Do NOT mix languages in your response."
 
         "For medication reminders (e.g., 'remind me to take Sintrom at 8am', "
         "'recuerda tomarme la pastilla', 'gogoratu pastilla 8etan'), "
@@ -88,7 +104,13 @@ root_agent = Agent(
         "For questions about Osakidetza health system (e.g., 'how to book an appointment', "
         "'horarios centro salud Barakaldo', 'cita previa Osakidetza'), "
         "delegate to the info_salud agent."
-    ),
+    )
+
+
+root_agent = Agent(
+    name="aita_lagun",
+    model=os.environ.get("GEMINI_MODEL", "gemini-3.1-flash-lite"),
+    instruction=_build_instruction,
     description="Root agent for Aita-Lagun assistant.",
     sub_agents=[recordatorio, info_salud_agent],
     before_agent_callback=_detect_language,

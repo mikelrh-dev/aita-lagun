@@ -1,330 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aita-Lagun — Elderly Care Assistant</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700&family=Hanken+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%232dd4bf'/%3E%3Cpath d='M10 20 Q16 8 22 20' stroke='%2300574d' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='14' r='1.5' fill='%2300574d'/%3E%3Ccircle cx='20' cy='14' r='1.5' fill='%2300574d'/%3E%3C/svg%3E">
-<style>
-:root {
-  --surface: #0b1326;
-  --surface-dim: #0b1326;
-  --surface-bright: #31394d;
-  --surface-container: #171f33;
-  --surface-container-high: #222a3d;
-  --surface-container-highest: #2d3449;
-  --surface-container-low: #131b2e;
-  --on-surface: #dae2fd;
-  --on-surface-variant: #bacac5;
-  --primary: #57f1db;
-  --primary-container: #2dd4bf;
-  --on-primary-container: #00574d;
-  --secondary: #6bd8cb;
-  --outline: #859490;
-  --outline-variant: #3c4a46;
-  --error: #ffb4ab;
-  --font-headline: 'Hanken Grotesk', sans-serif;
-  --font-body: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', sans-serif;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1.5rem;
-  --font-scale: 1;
-}
-*,\*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;color:var(--on-surface);font-family:var(--font-body);font-size:calc(18px * var(--font-scale));line-height:1.5;-webkit-font-smoothing:antialiased}
-body{background:radial-gradient(ellipse 80% 60% at 50% -20%, rgba(45,212,191,0.08) 0%, transparent 70%),radial-gradient(ellipse 60% 50% at 80% 100%, rgba(87,241,219,0.04) 0%, transparent 60%),var(--surface)}
-.app{display:flex;flex-direction:column;height:100dvh;max-width:800px;margin:0 auto;width:100%;position:relative}
-.app-header{text-align:center;padding:calc(24px * var(--font-scale)) calc(24px * var(--font-scale)) 4px;flex-shrink:0;position:relative}
-.app-header .logo-row{display:flex;align-items:center;justify-content:center;gap:12px}
-.logo{width:calc(40px * var(--font-scale));height:calc(40px * var(--font-scale));flex-shrink:0}
-.app-header h1{font-family:var(--font-headline);font-weight:700;font-size:calc(32px * var(--font-scale));color:var(--primary);letter-spacing:-0.01em}
-.app-header p{font-family:var(--font-headline);font-weight:400;font-size:calc(16px * var(--font-scale));color:var(--on-surface-variant);margin:2px 0 0}
-.size-toggle{position:absolute;top:16px;right:16px;background:var(--surface-container-high);border:1px solid var(--outline-variant);color:var(--on-surface-variant);border-radius:var(--radius-md);padding:6px 12px;font-family:var(--font-headline);font-weight:600;font-size:14px;cursor:pointer;transition:background .2s,color .2s}
-.size-toggle:hover{background:var(--surface-container-highest);color:var(--primary)}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aita-Lagun — Lagunentzako Laguntzailea</title>
 
-/* Custom scrollbar */
-.chat-messages::-webkit-scrollbar{width:8px}
-.chat-messages::-webkit-scrollbar-track{background:transparent}
-.chat-messages::-webkit-scrollbar-thumb{background:var(--outline-variant);border-radius:4px}
-.chat-messages::-webkit-scrollbar-thumb:hover{background:var(--outline)}
-.chat-messages{scrollbar-width:thin;scrollbar-color:var(--outline-variant) transparent}
+  <!-- Google Fonts: Hanken Grotesk + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-/* Message animations */
-@keyframes msgIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.message{animation:msgIn .3s ease-out both}
-.message:nth-child(2){animation-delay:.05s}
-.message:nth-child(3){animation-delay:.1s}
-.message:nth-child(4){animation-delay:.15s}
-
-.chat-messages{flex:1;overflow-y:auto;padding:calc(16px * var(--font-scale)) calc(24px * var(--font-scale));display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
-.message{max-width:85%;padding:12px 16px;border-radius:var(--radius-md);line-height:1.6;word-wrap:break-word;font-size:calc(18px * var(--font-scale));position:relative}
-.message.user::after{content:'';position:absolute;bottom:6px;right:-6px;width:12px;height:12px;background:var(--primary-container);clip-path:polygon(0 0,0% 100%,100% 100%);border-radius:0 0 3px 0}
-.message.assistant::before{content:'';position:absolute;bottom:6px;left:-6px;width:12px;height:12px;background:rgba(34,42,61,0.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);clip-path:polygon(100% 0,0% 100%,100% 100%);border-radius:0 0 0 3px;border-left:1px solid rgba(133,148,144,0.15);border-bottom:1px solid rgba(133,148,144,0.15)}
-.message p{margin:0 0 8px}
-.message p:last-child{margin-bottom:0}
-.message strong{font-weight:700}
-.message em{font-style:italic}
-.message a{color:var(--primary);text-decoration:underline}
-.message ul,.message ol{margin:8px 0;padding-left:24px}
-.message li{margin:4px 0}
-.message.user{align-self:flex-end;background:var(--primary-container);color:var(--on-primary-container)}
-.message.assistant{align-self:flex-start;background:rgba(34,42,61,0.7);color:var(--on-surface);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(133,148,144,0.15)}
-.message.error{align-self:center;background:transparent;color:var(--error);border:1px solid var(--error);text-align:center;padding:16px 20px;max-width:90%}
-.msg-time{display:block;font-size:calc(11px * var(--font-scale));color:inherit;opacity:.5;margin-top:4px;font-family:var(--font-headline)}
-.lang-badge{display:inline-block;font-size:calc(11px * var(--font-scale));font-weight:700;font-family:var(--font-headline);padding:2px 8px;border-radius:var(--radius-sm);background:rgba(87,241,219,0.15);color:var(--primary);margin-top:6px;letter-spacing:0.05em;align-self:flex-start}
-
-/* Loading indicator */
-.loading-indicator{display:flex;gap:8px;align-items:center;justify-content:center;padding:24px}
-.dot{width:calc(12px * var(--font-scale));height:calc(12px * var(--font-scale));border-radius:50%;background:var(--primary);animation:pulse 1.4s ease-in-out infinite both}
-.dot:nth-child(1){animation-delay:-0.32s}
-.dot:nth-child(2){animation-delay:-0.16s}
-@keyframes pulse{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
-
-/* Input area — glassmorphism */
-.input-area{flex-shrink:0;padding:calc(16px * var(--font-scale)) calc(24px * var(--font-scale)) 4px;background:rgba(11,19,38,0.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid rgba(133,148,144,0.12);margin-top:auto;position:sticky;bottom:0}
-.chat-form{display:flex;gap:8px;align-items:flex-end}
-.chat-form textarea{flex:1;min-height:56px;max-height:150px;padding:14px 16px;background:var(--surface-container-high);color:var(--on-surface);border:2px solid transparent;border-radius:var(--radius-md);font-family:var(--font-body);font-size:calc(18px * var(--font-scale));line-height:1.5;resize:none;outline:none;transition:border-color .2s, box-shadow .2s, min-height .2s}
-.chat-form textarea:focus{border-color:var(--primary-container);box-shadow:0 0 0 3px rgba(45,212,191,0.15);min-height:72px}
-.chat-form textarea::placeholder{color:var(--on-surface-variant)}
-.chat-form button{min-height:56px;min-width:72px;padding:0 20px;background:var(--primary-container);color:var(--on-primary-container);border:none;border-radius:var(--radius-md);font-family:var(--font-headline);font-weight:600;font-size:calc(16px * var(--font-scale));cursor:pointer;transition:opacity .15s, transform .15s}
-.chat-form button:hover{opacity:.9;transform:translateY(-1px)}
-.chat-form button:active{transform:translateY(0)}
-.chat-form button:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.chat-form button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-
-/* Empty state + suggestions */
-.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--on-surface-variant);text-align:center;padding:40px 24px}
-.empty-state h2{font-family:var(--font-headline);font-weight:600;font-size:calc(20px * var(--font-scale));margin-bottom:4px;color:var(--on-surface)}
-.empty-state p{font-size:calc(16px * var(--font-scale));max-width:400px;margin-bottom:20px}
-.suggestions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:500px}
-.suggestions button{background:var(--surface-container-high);border:1px solid var(--outline-variant);color:var(--on-surface);padding:10px 16px;border-radius:var(--radius-xl);font-family:var(--font-body);font-size:calc(15px * var(--font-scale));cursor:pointer;transition:background .2s,border-color .2s,transform .15s}
-.suggestions button:hover{background:var(--surface-container-highest);border-color:var(--primary-container);transform:scale(1.02)}
-.suggestions button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-
-/* Footer */
-.app-footer{text-align:center;padding:4px 0 8px;font-size:calc(13px * var(--font-scale));color:var(--on-surface-variant);opacity:.7}
-.app-footer a{color:var(--primary);text-decoration:none;transition:opacity .15s}
-.app-footer a:hover{opacity:.8;text-decoration:underline}
-.app-footer .sep{margin:0 6px;opacity:.4}
-
-/* Large text mode */
-.large-text{--font-scale:1.5}
-.large-text .message{max-width:92%}
-.large-text .chat-form textarea{min-height:72px}
-.large-text .chat-form button{min-height:64px}
-.large-text .suggestions button{padding:14px 20px}
-
-@media(max-width:600px){
-.app{padding:0}
-.app-header{padding:16px 16px 0}
-.app-header h1{font-size:calc(28px * var(--font-scale))}
-.chat-messages{padding:calc(12px * var(--font-scale)) 16px}
-.input-area{padding:calc(8px * var(--font-scale)) 12px 4px}
-.message{font-size:calc(18px * var(--font-scale));max-width:92%}
-.size-toggle{top:8px;right:8px;padding:4px 10px;font-size:12px}
-}
-</style>
+  <!-- Stylesheet — all visual design lives here -->
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="app" id="app">
-  <header class="app-header">
-    <button class="size-toggle" id="size-toggle" aria-label="Toggle large text" title="Toggle large text">A+</button>
-    <div class="logo-row">
-      <svg class="logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <circle cx="20" cy="20" r="18" fill="#2dd4bf"/>
-        <path d="M12 26 Q20 8 28 26" stroke="#00574d" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <circle cx="14.5" cy="17" r="2" fill="#00574d"/>
-        <circle cx="25.5" cy="17" r="2" fill="#00574d"/>
-      </svg>
-      <h1>Aita-Lagun</h1>
-    </div>
-    <p>Elderly Care Assistant</p>
-  </header>
-  <div class="chat-messages" id="chat-messages" role="log" aria-label="Chat messages" aria-live="polite">
-    <div class="empty-state" id="empty-state">
-      <h2>How can I help you today?</h2>
-      <p>Try one of these examples:</p>
-      <div class="suggestions" id="suggestions">
-        <button data-msg="Remind me to take Sintrom at 8am">💊 Remind me to take Sintrom at 8am</button>
-        <button data-msg="How do I book an appointment at Osakidetza?">🏥 How do I book an appointment?</button>
-        <button data-msg="Gogoratu pastilla 8:00">🗣️ Gogoratu pastilla 8:00</button>
+  <div class="app" id="app">
+    <!-- Header — brand wordmark + status badge -->
+    <header class="app-header">
+      <span class="header-wordmark">Aita-Lagun</span>
+      <span class="header-badge">● Active</span>
+    </header>
+
+    <!-- Chat Messages — scrollable log with aria-live for screen readers -->
+    <div class="chat-messages" id="chat-messages" role="log" aria-label="Chat messages" aria-live="polite">
+      <!-- Empty State — warm welcome, pure text + CSS -->
+      <div class="empty-state" id="empty-state">
+        <div class="welcome-accent" aria-hidden="true"></div>
+        <h2 class="welcome-title">Hello, how can I help you?</h2>
+        <p class="welcome-sub">Ask me about medications, appointments, or anything you need.</p>
+        <div class="suggestions" id="suggestions">
+          <button data-msg="Remind me to take Sintrom at 8am">💊 Remind me to take Sintrom at 8am</button>
+          <button data-msg="How do I book an appointment at Osakidetza?">🏥 How do I book an appointment?</button>
+          <button data-msg="Gogoratu pastilla 8:00">🗣️ Gogoratu pastilla 8:00</button>
+        </div>
       </div>
     </div>
+
+    <!-- Input Area — sticky bottom form -->
+    <div class="input-area">
+      <div class="input-prompt">
+        <form class="chat-form" id="chat-form">
+          <textarea id="message-input" rows="1" placeholder="Type your message..." aria-label="Message input" autofocus></textarea>
+          <button type="submit" aria-label="Send message" id="send-btn">Send</button>
+        </form>
+      </div>
+
+      <!-- Footer / Status Bar -->
+      <footer class="app-footer" id="status-bar">
+        <span><span class="status-dot"></span>MCP Ready</span>
+        <span class="footer-right">
+          <a href="https://github.com/mikelrh-dev/aita-lagun" target="_blank" rel="noopener">GitHub</a>
+          <span>Google ADK</span>
+        </span>
+      </footer>
+    </div>
   </div>
-  <div class="input-area">
-    <form class="chat-form" id="chat-form">
-      <textarea id="message-input" rows="1" placeholder="Type your message..." aria-label="Message input" autofocus></textarea>
-      <button type="submit" aria-label="Send message" id="send-btn">Send</button>
-    </form>
-    <footer class="app-footer">
-      <a href="https://github.com/mikelrh-dev/aita-lagun" target="_blank" rel="noopener" aria-label="View source on GitHub">GitHub</a>
-      <span class="sep">·</span>
-      Built with Google ADK — 100% Free
-    </footer>
-  </div>
-</div>
-<script>
-(function() {
-  const app = document.getElementById('app');
-  const chatMessages = document.getElementById('chat-messages');
-  const form = document.getElementById('chat-form');
-  const input = document.getElementById('message-input');
-  const sendBtn = document.getElementById('send-btn');
-  const emptyState = document.getElementById('empty-state');
-  const suggestions = document.getElementById('suggestions');
-  const sizeToggle = document.getElementById('size-toggle');
 
-  // Large text toggle
-  sizeToggle.addEventListener('click', function() {
-    app.classList.toggle('large-text');
-    this.textContent = app.classList.contains('large-text') ? 'A-' : 'A+';
-    this.setAttribute('aria-label', app.classList.contains('large-text') ? 'Toggle normal text' : 'Toggle large text');
-    // Re-trigger auto-resize
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 150) + 'px';
-  });
-
-  // Suggestion chips
-  suggestions.addEventListener('click', function(e) {
-    var btn = e.target.closest('button');
-    if (!btn) return;
-    input.value = btn.getAttribute('data-msg');
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 150) + 'px';
-    form.requestSubmit();
-  });
-
-  function scrollToBottom() {
-    requestAnimationFrame(function() {
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    });
-  }
-
-  function getCurrentTime() {
-    var d = new Date();
-    return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-  }
-
-  input.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 150) + 'px';
-  });
-  input.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
-  });
-
-  function escapeHtml(t) {
-    var d = document.createElement('div');
-    d.appendChild(document.createTextNode(t));
-    return d.innerHTML;
-  }
-
-  function renderMarkdown(text) {
-    var html = escapeHtml(text);
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-    html = html.replace(/`(.+?)`/g, '<code>$1</code>');
-    html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-    var parts = html.split(/\n\s*\n/);
-    if (parts.length > 1) {
-      return parts.map(function(p) { return p.trim() ? '<p>' + p + '</p>' : ''; }).join('');
-    }
-    return html.replace(/\n/g, '<br>');
-  }
-
-  function detectLanguage(text) {
-    var lower = text.toLowerCase();
-    var eu = 0, es = 0, m;
-    m = lower.match(/\b(eta|ez|bat|du|da|zen|dira|dute|zuen|bere|gure|zure|haien|batez|batek|gisa|moduan|eskatu|behar|nahi|izan|egon|osakidetza|sendagai|mediku|botika|errezeta|hitza|egin|eman|eskaera|baieztatu|sortu|gogoratu|pastilla|kaixo)\b/g);
-    if (m) eu = m.length;
-    m = lower.match(/\b(el|la|los|las|que|por|para|con|una|como|más|pero|este|esta|hola|gracias|puede|debe|usted|señor|señora|buenos|días|tardes|noches|salud|cita|médico|farmacia|pastillas|medicamento|receta|sintrom|turno|horario|centro|atencion|paciente|recuerda|tomar)\b/g);
-    if (m) es = m.length;
-    if (eu > es && eu >= 2) return 'EU';
-    if (es > eu && es >= 2) return 'ES';
-    return 'EN';
-  }
-
-  function addMessage(text, type) {
-    if (emptyState && emptyState.parentNode) emptyState.remove();
-    var div = document.createElement('div');
-    div.className = 'message ' + type;
-    if (type === 'assistant') {
-      div.innerHTML = renderMarkdown(text);
-      var badge = document.createElement('span');
-      badge.className = 'lang-badge';
-      badge.textContent = detectLanguage(text);
-      div.appendChild(badge);
-      var time = document.createElement('span');
-      time.className = 'msg-time';
-      time.textContent = getCurrentTime();
-      div.appendChild(time);
-    } else if (type === 'error') {
-      div.textContent = text;
-      var timeErr = document.createElement('span');
-      timeErr.className = 'msg-time';
-      timeErr.textContent = getCurrentTime();
-      div.appendChild(timeErr);
-    } else {
-      div.textContent = text;
-      var timeUsr = document.createElement('span');
-      timeUsr.className = 'msg-time';
-      timeUsr.textContent = getCurrentTime();
-      div.appendChild(timeUsr);
-    }
-    chatMessages.appendChild(div);
-    scrollToBottom();
-  }
-
-  function toggleLoading(show) {
-    var el = document.querySelector('.loading-indicator');
-    if (show && !el) {
-      el = document.createElement('div');
-      el.className = 'loading-indicator';
-      el.setAttribute('aria-label', 'Assistant is typing');
-      el.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
-      chatMessages.appendChild(el);
-      scrollToBottom();
-    } else if (!show && el) {
-      el.remove();
-    }
-  }
-
-  form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    var text = input.value.trim();
-    if (!text) return;
-    addMessage(text, 'user');
-    input.value = '';
-    input.style.height = 'auto';
-    sendBtn.disabled = true;
-    toggleLoading(true);
-    try {
-      var res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
-      });
-      if (!res.ok) {
-        var errData;
-        try { errData = await res.json(); } catch(_) { errData = {}; }
-        throw new Error(errData.detail || 'Request failed (' + res.status + ')');
-      }
-      var data = await res.json();
-      toggleLoading(false);
-      addMessage(data.reply, 'assistant');
-    } catch (err) {
-      toggleLoading(false);
-      addMessage('Something went wrong. Please try again.', 'error');
-    } finally {
-      sendBtn.disabled = false;
-      input.focus();
-    }
-  });
-})();
-</script>
+  <!-- Application JavaScript -->
+  <script src="app.js"></script>
 </body>
 </html>
