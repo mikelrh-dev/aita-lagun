@@ -115,14 +115,24 @@ class TestDetectLanguage:
         await _detect_language(ctx)
         assert ctx.state["lang"] == "en"
 
-    async def test_does_not_overwrite_existing_lang(self):
-        """If 'lang' already in state, don't overwrite."""
+    async def test_strong_signal_overwrites_existing_lang(self):
+        """A strong keyword signal overrides a previously-set language."""
         from agents.agent import _detect_language
 
         ctx = self._make_context(["gogoratu pastilla 8etan"])
-        ctx.state["lang"] = "de"  # pre-set
+        ctx.state["lang"] = "de"  # pre-set from somewhere else
         await _detect_language(ctx)
-        assert ctx.state["lang"] == "de"  # unchanged
+        # "gogoratu" is a strong Basque signal → overwrites
+        assert ctx.state["lang"] == "eu"
+
+    async def test_weak_signal_keeps_existing_lang(self):
+        """Text without strong keywords keeps the existing language unchanged."""
+        from agents.agent import _detect_language
+
+        ctx = self._make_context(["some random text with no keywords"])
+        ctx.state["lang"] = "eu"  # pre-set
+        await _detect_language(ctx)
+        assert ctx.state["lang"] == "eu"  # unchanged
 
     async def test_hola_detects_spanish(self):
         """'hola' is a Spanish keyword, not English."""

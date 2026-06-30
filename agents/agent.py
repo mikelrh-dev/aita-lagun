@@ -30,47 +30,70 @@ from agents.orchestrator import recordatorio
 from agents.info_salud_agent import info_salud_agent
 
 
+def _has_word(text: str, word: str) -> bool:
+    """Check if ``word`` appears as a standalone word in ``text``.
+
+    Uses regex word boundary (\\b) matching so that e.g. ``_has_word("bailar", "bai")``
+    returns ``False``, while ``_has_word("bai, esan", "bai")`` returns ``True``.
+    """
+    import re
+    return bool(re.search(rf'\b{re.escape(word)}\b', text, re.IGNORECASE))
+
+
 async def _detect_language(callback_context: CallbackContext) -> None:
-    """Detect user language from the first message and store in callback state.
+    """Detect user language from the latest user message.
 
     Scans the most recent user message for language-specific keywords.
     Basque is checked first (least overlap with other supported languages),
-    then Spanish, then English. Falls back to English if no keywords match.
+    then Spanish, then English.
+
+    Unlike the previous version, this runs on EVERY turn — it does NOT
+    cache the result once per session. This allows the user to switch
+    languages mid-session (e.g., test Basque, then switch to English).
+
+    However, short follow-ups (e.g. "Every day", "Egunero", "Bai") often
+    lack clear language signals. So we apply a "strong match only" rule:
+    if the latest message matches a keyword, update the cached lang;
+    if it doesn't match anything, KEEP the current lang unchanged.
 
     The detected language is stored in ``callback_context.state["lang"]``,
-    which is read by the root agent's instruction to respond appropriately.
+    which is read by the root and sub-agent instructions.
 
     Args:
         callback_context: ADK callback context with session state access.
     """
-    if "lang" not in callback_context.state:
-        # Iterate events in reverse to find the latest user message.
-        # The callback runs before each agent turn, so we only check once
-        # and cache the result in state.
-        history = callback_context.session.events
-        for event in reversed(history):
-            if event.content is None:
-                continue
-            if hasattr(event.content, 'parts'):
-                for part in event.content.parts:
-                    if hasattr(part, 'text') and part.text:
-                        text = part.text.lower()
+    # Iterate events in reverse to find the latest user message.
+    history = callback_context.session.events
+    for event in reversed(history):
+        if event.content is None:
+            continue
+        if hasattr(event.content, 'parts'):
+            for part in event.content.parts:
+                if hasattr(part, 'text') and part.text:
+                    text = part.text.lower()
 
-                        # Basque checked first: these words are highly distinctive
-                        # and unlikely to appear in English or Spanish text,
-                        # reducing false positives from the language detector.
-                        if any(w in text for w in ['gogoratu', 'baieztatu', 'bai', 'ez', 'kaixo']):
-                            callback_context.state["lang"] = "eu"
-                            return
-                        if any(w in text for w in ['recuerda', 'cita', 'hola', 'gracias']):
-                            callback_context.state["lang"] = "es"
-                            return
-                        if any(w in text for w in ['hello', 'hi', 'remember', 'remind']):
-                            callback_context.state["lang"] = "en"
-                            return
-        # Fallback: default to English if no language keywords are detected.
-        # This assumes English-first usage for the Kaggle evaluation context.
-        callback_context.state["lang"] = "en"
+                    # Basque checked first: these words are highly distinctive
+                    # and unlikely to appear in English or Spanish text.
+                    # Short words (bai, ez) use word-boundary matching to
+                    # avoid false positives from substrings like "bail", "size".
+                    if any(w in text for w in ['gogoratu', 'baieztatu', 'kaixo']):
+                        callback_context.state["lang"] = "eu"
+                        return
+                    if _has_word(text, 'bai') or _has_word(text, 'ez'):
+                        callback_context.state["lang"] = "eu"
+                        return
+                    if any(w in text for w in ['recuerda', 'cita', 'hola', 'gracias']):
+                        callback_context.state["lang"] = "es"
+                        return
+                    if any(w in text for w in ['hello', 'hi', 'remember', 'remind']):
+                        callback_context.state["lang"] = "en"
+                        return
+                    # No strong signal → keep current language unchanged,
+                    # or set default if this is the first ever detection.
+                    callback_context.state.setdefault("lang", "en")
+                    return
+    # No user message found at all. Set a sensible default.
+    callback_context.state.setdefault("lang", "en")
 
 
 def _build_instruction(callback_context: CallbackContext) -> str:
