@@ -2,6 +2,10 @@
 
 **Track:** Agents for Good
 
+**Project Link:** [github.com/mikelrh-dev/aita-lagun](https://github.com/mikelrh-dev/aita-lagun)
+
+**Video:** [YouTube link — paste after uploading]
+
 ---
 
 ## 1. Problem Statement
@@ -18,11 +22,11 @@ The Kaggle AI Agents Capstone asks participants to build practical AI agent solu
 
 Aita-Lagun is a **multi-agent conversational assistant** built with Google's Agent Development Kit (ADK). It provides two core capabilities through natural conversation:
 
-1. **Medication Reminders** — users tell the assistant about their medication (e.g., "remind me to take Sintrom at 8am"), confirm the details when prompted, and a Google Calendar event is created with all the information.
+1. **Medication Reminders** — users tell the assistant about their medication (e.g., "remind me to take Sintrom at 8am"). The agent proactively asks about recurrence (daily/weekly/just once), detects if the requested time has already passed and schedules for tomorrow if needed, then requests conversational confirmation before creating the Google Calendar event with the correct RRULE.
 
 2. **Health System Information** — users ask questions about Osakidetza services (e.g., "how do I book an appointment?") and receive answers extracted from official public PDFs published by the health authority.
 
-The system operates entirely with **free, no-cost APIs** — Google AI Studio provides the API key for the language model, and no paid services are required. It supports **English, Spanish, and Basque**, detecting the user's language automatically and responding in kind.
+The system operates entirely with **free, no-cost APIs** — Google AI Studio provides the API key for the language model, and no paid services are required. It supports **English, Spanish, and Basque**, detecting the user's language automatically and responding in kind. Language detection runs on every user turn, so switching languages mid-session works seamlessly.
 
 ## 3. Architecture
 
@@ -137,10 +141,10 @@ The project follows Strict TDD. All MCP tool functions are pure or mock-isolated
 The video walks through:
 - **0:00–0:30** — Problem context: elderly users, medication management, Osakidetza complexity
 - **0:30–1:00** — Architecture diagram walkthrough
-- **1:00–2:30** — Demo 1: "remind me Sintrom at 8am" shows the human-in-the-loop confirmation prompt, user types "yes", and the calendar event is created
-- **2:30–3:20** — Demo 2: "how do I book an Osakidetza appointment?" shows the PDF search returning structured public health information
-- **3:20–3:40** — Basque language demo: "gogoratu pastilla 8:00" shows automatic language detection with English subtitles
-- **3:40–4:00** — Closing: concepts demonstrated (ADK, MCP, Security)
+- **1:00–2:30** — Demo 1: "remind me Sintrom at 8am". The agent proactively asks about recurrence (daily/weekly/once) with three buttons, then requests conversational confirmation before creating a Google Calendar event with the correct RRULE
+- **2:30–3:20** — Demo 2: "how do I book an Osakidetza appointment?" shows the PDF search returning structured public health information from official documents
+- **3:20–3:40** — Demo 3: "gogoratu pastilla 8:00" in Basque. The agent detects Basque instantly AND knows 8am has passed, so it proactively schedules for tomorrow. Language detection + temporal awareness in one response
+- **3:40–4:00** — Closing: concepts demonstrated (ADK Multi-Agent, MCP Server, Security Features, Antigravity, Deployability, Agent Skills)
 
 ## 7. The Build Journey
 
@@ -166,15 +170,16 @@ After resolving these, the implementation flowed predictably: MCP servers first 
 |---------------|-------------------|
 | **ADK Multi-Agent System** | `agents/agent.py`: Root `Agent` with `sub_agents=[recordatorio, info_salud_agent]`, LLM routing via `description` fields |
 | **MCP Server** | `mcp_servers/calendar_mcp.py` and `mcp_servers/pdf_mcp.py`: FastMCP servers exposing tools via stdio transport, consumed by ADK via `McpToolset` |
-| **Security Features** | Conversational confirmation via LLM instruction before calendar writes; zero personal data stored; only public PDFs accessed |
-| **Agent Skills** | `skills/SKILL.md`: Non-executable skill-definition file documenting the reminder creation capability |
-| **Deployability** | `pyproject.toml`, `requirements.txt`, `.env.example`: Standard Python project structure, installable with `pip install -r requirements.txt`, runnable with `python -m agents.agent` |
+| **Antigravity** | Full project loaded in Antigravity desktop IDE: `agents/`, `mcp_servers/`, tests, and configuration visible in the editor |
+| **Security Features** | Conversational confirmation via LLM instruction before calendar writes (proactive ask + final HITL); zero personal health data stored; only public PDFs accessed |
+| **Agent Skills** | `skills/SKILL.md`: Non-executable skill-definition file documenting the reminder creation capability with recurrence support |
+| **Deployability** | `pyproject.toml`, `requirements.txt`, `.env.example`: Standard Python project structure, installable with `pip install -r requirements.txt`, runnable via `python -m uvicorn app.main:app --port 8080` |
 
 ## 9. Limitations & Future Work
 
 - **Time parsing** is handled by the LLM, which is flexible but not perfectly reliable for edge cases. A regex fallback or structured time extraction would improve robustness.
 - **Calendar integration** requires a Google service account. For production deployment, OAuth with token refresh would handle multi-user scenarios better.
-- **Language detection** uses keyword heuristics in the callback. For broader language support, the LLM itself could detect language without preprocessing.
+- **Language detection** uses keyword heuristics re-evaluated on every user turn. The system handles EN/ES/EU switching mid-session, but short follow-ups (e.g., "Egunero") rely on the previous turn's detection.
 - **Deployment** to Cloud Run or similar platforms would make the assistant accessible without local setup. The current ADK runner is designed for local/CLI interaction.
 - **Video content** and media gallery screenshots are prepared but submitted separately with the Kaggle Writeup.
 
